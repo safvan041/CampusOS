@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if section %}Edit{% else %}Create{% endif %} Section - {{ tenant.school_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-users me-2"></i> {% if section %}Edit{% else %}Create{% endif %} Section</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="class_obj" class="form-label">Class *</label>
+                            <select class="form-select" id="class_obj" name="class_obj" required>
+                                <option value="">Select a class...</option>
+                                {% for class in classes %}
+                                <option value="{{ class.pk }}" {% if section and section.class_obj == class %}selected{% endif %}>
+                                    {{ class.name }} ({{ class.academic_session.name }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Section Name *</label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                value="{% if section %}{{ section.name }}{% endif %}" placeholder="e.g., A, B, C"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="class_teacher" class="form-label">Class Teacher</label>
+                            <select class="form-select" id="class_teacher" name="class_teacher">
+                                <option value="">No teacher assigned</option>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.pk }}" {% if section and section.class_teacher and section.class_teacher == teacher %}selected{% endif %}>
+                                    {{ teacher.get_full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="room_number" class="form-label">Room Number</label>
+                            <input type="text" class="form-control" id="room_number" name="room_number"
+                                value="{% if section %}{{ section.room_number }}{% endif %}"
+                                placeholder="e.g., 101, A-205">
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> Save Section
+                            </button>
+                            <a href="{% url 'academic:section_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5><i class="fas fa-info-circle me-2"></i> Help</h5>
+                    <p><strong>Sections</strong> divide classes into smaller groups.</p>
+                    <ul class="mb-0">
+                        <li>Examples: A, B, C or Section 1, Section 2</li>
+                        <li>Assign a class teacher to each section</li>
+                        <li>Students are enrolled in sections</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}Attendance - CampusOS{% endblock %}
+{% block title %}Attendance Dashboard - CampusOS{% endblock %}
 
 {% block content %}
 <div class="container my-5">
     <div class="row mb-4">
         <div class="col">
-            <h2>📋 Attendance Module</h2>
+            <h2>📋 Attendance Dashboard</h2>
             <p class="text-muted">School: <strong>{{ tenant.school_name }}</strong></p>
         </div>
         <div class="col-auto">
@@ -16,63 +16,247 @@
         </div>
     </div>
 
-    <!-- Welcome Message -->
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i>
-        Welcome to the Attendance module! Track and manage student attendance efficiently.
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-2x text-success mb-2"></i>
+                    <h3 class="mb-0">
+                        {% if user_role == 'Student' %}
+                        My Stats
+                        {% else %}
+                        {{ total_students }}
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">
+                        {% if user_role == 'Student' %}
+                        Personal Record
+                        {% elif user_role == 'Teacher' %}
+                        My Students
+                        {% else %}
+                        Total Students
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-primary mb-2"></i>
+                    <h3 class="mb-0">{{ present_count }}</h3>
+                    <p class="text-muted mb-0">
+                        {% if user_role == 'Student' %}
+                        Days Present
+                        {% else %}
+                        Present Today
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+                    <h3 class="mb-0">{{ absent_count }}</h3>
+                    <p class="text-muted mb-0">
+                        {% if user_role == 'Student' %}
+                        Days Absent
+                        {% else %}
+                        Absent Today
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                    <h3 class="mb-0">{{ attendance_percentage }}%</h3>
+                    <p class="text-muted mb-0">Attendance Rate</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Module Features -->
-    <div class="row g-4">
-        <!-- Mark Attendance -->
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-4">
+        {% if user_role == 'Teacher' or user_role == 'Principal' %}
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body text-center">
                     <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
                     <h5 class="card-title">Mark Attendance</h5>
-                    <p class="card-text">Take attendance for classes and track student presence.</p>
-                    <a href="{% url 'attendance:mark' %}" class="btn btn-success">Mark Attendance</a>
+                    <p class="card-text">Take attendance for your classes quickly and efficiently.</p>
+                    <a href="{% url 'attendance:select_class' %}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Mark Attendance
+                    </a>
                 </div>
             </div>
         </div>
+        {% endif %}
 
-        <!-- View Reports -->
+        {% if user_role == 'Teacher' or user_role == 'Principal' %}
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body text-center">
                     <i class="fas fa-chart-bar fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">Attendance Reports</h5>
+                    <h5 class="card-title">Class Reports</h5>
                     <p class="card-text">View detailed attendance reports and statistics.</p>
-                    <a href="{% url 'attendance:reports' %}" class="btn btn-primary">View Reports</a>
+                    <a href="{% url 'attendance:class_report' %}" class="btn btn-primary">
+                        <i class="fas fa-file-alt me-2"></i>View Reports
+                    </a>
                 </div>
             </div>
         </div>
+        {% endif %}
 
-        <!-- Settings -->
+        {% if user_role == 'Student' %}
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body text-center">
-                    <i class="fas fa-cog fa-3x text-secondary mb-3"></i>
-                    <h5 class="card-title">Settings</h5>
-                    <p class="card-text">Configure attendance policies and preferences.</p>
-                    <a href="#" class="btn btn-secondary">Configure</a>
+                    <i class="fas fa-user-check fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">My Attendance</h5>
+                    <p class="card-text">View your personal attendance record and statistics.</p>
+                    <a href="{% url 'attendance:my_attendance' %}" class="btn btn-info">
+                        <i class="fas fa-eye me-2"></i>View My Attendance
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-3x text-secondary mb-3"></i>
+                    <h5 class="card-title">Today's Date</h5>
+                    <p class="card-text">{{ today|date:"l, F d, Y" }}</p>
+                    <p class="text-muted mb-0">Current Academic Session</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="row mt-4">
+    <!-- Absent Students Today -->
+    {% if user_role == 'Teacher' or user_role == 'Principal' %}
+
+    <!-- Recently Taken Attendance (Teacher Context) -->
+    {% if user_role == 'Teacher' and recent_history %}
+    <div class="row mb-4">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i> Recent Activity</h5>
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i> Recently Taken Attendance</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">No recent activity to display.</p>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for history in recent_history %}
+                                <tr>
+                                    <td class="align-middle fw-bold">{{ history.class_name }}</td>
+                                    <td class="align-middle">{{ history.date|date:"F d, Y" }}</td>
+                                    <td class="align-middle">
+                                        <a href="{% url 'attendance:mark_attendance' history.id %}?date={{ history.date|date:'Y-m-d' }}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    {% endif %}
+
+    {% if absent_students %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i> Absent Students Today</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Roll Number</th>
+                                    <th>Student Name</th>
+                                    <th>Class</th>
+                                    <th>Contact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in absent_students %}
+                                <tr>
+                                    <td>{{ student.roll_number }}</td>
+                                    <td>{{ student.user.get_full_name }}</td>
+                                    <td>{{ student.class_assigned }}</td>
+                                    <td>{{ student.parent_contact|default:"N/A" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Teacher's Classes -->
+    {% if user_role == 'Teacher' and user_classes %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-chalkboard-teacher me-2"></i> My Classes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for class in user_classes %}
+                        <div class="col-md-4">
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        {{ class.name }} - {{ class.section }}
+                                        {% if class.type == 'academic' %}
+                                        <span class="badge bg-info text-dark ms-1" style="font-size: 0.7em;">New</span>
+                                        {% endif %}
+                                    </h6>
+                                    <p class="card-text text-muted mb-2">
+                                        <i class="fas fa-users me-1"></i> {{ class.student_count }} students
+                                    </p>
+                                    <a href="{% url 'attendance:mark_attendance' class.id %}"
+                                        class="btn btn-sm btn-primary">
+                                        <i class="fas fa-check me-1"></i> Mark Attendance
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

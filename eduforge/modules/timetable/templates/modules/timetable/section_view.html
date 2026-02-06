@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Timetable - {{ section.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-calendar-alt me-2"></i> {{ section.full_name }} Timetable</h2>
+            <p class="text-muted">
+                Session: <strong>{{ section.class_obj.academic_session.name }}</strong> |
+                Teacher: <strong>{{ section.class_teacher.get_full_name|default:"Not assigned" }}</strong>
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if user.role.name == 'Principal' or user.role.name == 'Staff' %}
+            <a href="{% url 'timetable:manage_timetable' section.id %}" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i> Edit Timetable
+            </a>
+            {% endif %}
+            <button onclick="window.print()" class="btn btn-outline-secondary">
+                <i class="fas fa-print me-2"></i> Print
+            </button>
+            <a href="{% url 'timetable:dashboard' %}" class="btn btn-outline-secondary">
+                Back
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped mb-0 text-center">
+                    <thead class="bg-light">
+                        <tr>
+                            <th style="width: 100px;">Day / Time</th>
+                            {% for slot in time_slots %}
+                            <th>
+                                <div>{{ slot.name }}</div>
+                                <small class="text-muted">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i"
+                                    }}</small>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day_code, day_data in timetable_grid.items %}
+                        <tr>
+                            <td class="fw-bold bg-light align-middle">{{ day_data.name }}</td>
+                            {% for slot_id, entry in day_data.slots.items %}
+                            <td class="align-middle {% if not entry %}text-muted bg-white{% endif %}">
+                                {% if entry %}
+                                <div class="fw-bold text-primary">{{ entry.subject }}</div>
+                                {% if entry.teacher %}
+                                <div class="small text-muted">
+                                    <i class="fas fa-user-tie me-1"></i> {{ entry.teacher.get_full_name }}
+                                </div>
+                                {% endif %}
+                                {% if entry.room_number %}
+                                <div class="small text-muted">
+                                    <i class="fas fa-door-open me-1"></i> {{ entry.room_number }}
+                                </div>
+                                {% endif %}
+                                {% else %}
+                                <span class="small">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style media="print">
+    .btn,
+    .navbar,
+    .sidebar {
+        display: none !important;
+    }
+
+    .card {
+        border: none !important;
+        shadow: none !important;
+    }
+
+    .container-fluid {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+</style>
+{% endblock %}

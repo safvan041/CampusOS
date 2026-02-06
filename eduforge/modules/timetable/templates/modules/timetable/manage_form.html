@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load timetable_tags %}
+
+{% block title %}Manage Timetable - {{ section.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-edit me-2"></i> Manage Timetable</h2>
+            <h5 class="text-muted">{{ section.full_name }}</h5>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'timetable:section_timetable' section.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times me-2"></i> Cancel
+            </a>
+        </div>
+    </div>
+
+    <form method="post" id="timetableForm">
+        {% csrf_token %}
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead class="bg-light text-center">
+                            <tr>
+                                <th style="width: 100px;">Day</th>
+                                {% for slot in time_slots %}
+                                <th style="min-width: 200px;">
+                                    <div>{{ slot.name }}</div>
+                                    <small class="text-muted">{{ slot.start_time|time:"H:i" }} - {{
+                                        slot.end_time|time:"H:i" }}</small>
+                                </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for day_code, day_name in days %}
+                            <tr>
+                                <td class="fw-bold bg-light align-middle text-center">{{ day_name }}</td>
+                                {% for slot in time_slots %}
+                                <td class="p-2">
+                                    {% with key=day_code|stringformat:"i"|add:"_"|add:slot.id|stringformat:"i" %}
+                                    {# Logic handled via custom tag or dictionary lookup in view #}
+                                    {# Simplified lookup for form inputs #}
+
+                                    <div class="mb-2">
+                                        <!-- Subject -->
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-1">Subject</label>
+                                            {% with key=day_code|stringformat:"i"|add:"_"|add:slot.id|stringformat:"s" %}
+                                            {% with entry=existing_data|get_item:key %}
+                                            <input type="text" class="form-control form-control-sm"
+                                                name="slot_{{ day_code }}_{{ slot.id }}_subject"
+                                                placeholder="e.g., Mathematics"
+                                                value="{% if entry %}{{ entry.subject }}{% endif %}">
+                                            {% endwith %}
+                                            {% endwith %}
+                                        </div>
+
+                                        <select class="form-select form-select-sm"
+                                            name="slot_{{ day_code }}_{{ slot.id }}_teacher">
+                                            <option value="">Teacher...</option>
+                                            {% for teacher in teachers %}
+                                            {% with teacher_id=existing_data|get_item:key|get_attr:"teacher_id" %}
+                                            <option value="{{ teacher.id }}" {% if teacher_id == teacher.id %}selected{% endif %}>
+                                                {{ teacher.get_full_name }}
+                                            </option>
+                                            {% endwith %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    {% endwith %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white text-end py-3">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save me-2"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

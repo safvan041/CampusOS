@@ -229,13 +229,9 @@ class SchoolRegistrationForm(forms.Form):
     def clean_admin_email(self):
         """Check if admin email already exists."""
         email = self.cleaned_data.get('admin_email')
-        
-        # Check email uniqueness
-        if not EnvController.ALLOW_DUPLICATE_EMAILS:
-            if CustomUser.objects.filter(email=email).exists():
-                raise ValidationError('This email is already registered.')
-        
-        EnvController.log_validation_bypass('EMAIL', f'Email "{email}" passed with overrides')
+
+        # Email should be unique per tenant. For new tenant registration, allow reuse across tenants.
+        EnvController.log_validation_bypass('EMAIL', f'Email "{email}" allowed for new tenant registration')
         return email
 
     def clean_admin_password(self):
@@ -381,3 +377,90 @@ class AdminAccountForm(forms.ModelForm):
             raise ValidationError('Passwords do not match.')
         
         return cleaned_data
+
+
+class UserCreateForm(forms.ModelForm):
+    """
+    Form for creating users within a tenant.
+    """
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        required=True
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        required=True
+    )
+
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'role']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'role': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.tenant = kwargs.pop('tenant', None)
+        super().__init__(*args, **kwargs)
+        if self.tenant:
+            self.fields['role'].queryset = self.tenant.roles.all()
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if self.tenant and CustomUser.objects.filter(email=email, tenant=self.tenant).exists():
+            raise ValidationError('A user with this email already exists in this tenant.')
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        confirm = cleaned_data.get('confirm_password')
+
+        if password and confirm and password != confirm:
+            raise ValidationError('Passwords do not match.')
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if self.tenant:
+            user.tenant = self.tenant
+        user.username = user.email
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+        return user
+
+
+class UserUpdateForm(forms.ModelForm):
+    """
+    Form for updating users within a tenant.
+    """
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'role', 'is_active']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'role': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.tenant = kwargs.pop('tenant', None)
+        super().__init__(*args, **kwargs)
+        if self.tenant:
+            self.fields['role'].queryset = self.tenant.roles.all()
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if self.tenant:
+            existing = CustomUser.objects.filter(email=email, tenant=self.tenant).exclude(pk=self.instance.pk)
+            if existing.exists():
+                raise ValidationError('A user with this email already exists in this tenant.')
+        return email

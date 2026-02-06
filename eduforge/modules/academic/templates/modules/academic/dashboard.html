@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Academic Setup - {{ tenant.school_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-graduation-cap me-2"></i> Academic Setup</h2>
+            <p class="text-muted">Manage academic sessions, classes, sections, and student enrollment</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ total_sessions }}</h3>
+                    <p class="mb-0">Academic Sessions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ total_classes }}</h3>
+                    <p class="mb-0">Classes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ total_sections }}</h3>
+                    <p class="mb-0">Sections</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ total_enrollments }}</h3>
+                    <p class="mb-0">Active Enrollments</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Session Info -->
+    {% if active_session %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <strong>Active Session:</strong> {{ active_session.name }}
+                ({{ active_session.start_date|date:"M d, Y" }} - {{ active_session.end_date|date:"M d, Y" }})
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <strong>No Active Session!</strong> Please create and activate an academic session to begin.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar me-2"></i> Academic Sessions</h5>
+                </div>
+                <div class="card-body">
+                    <p>Manage academic years and sessions</p>
+                    <a href="{% url 'academic:session_list' %}" class="btn btn-primary">Manage Sessions</a>
+                    <a href="{% url 'academic:session_create' %}" class="btn btn-outline-primary">Create New</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-school me-2"></i> Classes & Sections</h5>
+                </div>
+                <div class="card-body">
+                    <p>Organize classes and sections</p>
+                    <a href="{% url 'academic:class_list' %}" class="btn btn-success">Manage Classes</a>
+                    <a href="{% url 'academic:section_list' %}" class="btn btn-outline-success">Manage Sections</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-user-graduate me-2"></i> Student Enrollment</h5>
+                </div>
+                <div class="card-body">
+                    <p>Enroll students in sections</p>
+                    <a href="{% url 'academic:enrollment_list' %}" class="btn btn-warning">View Enrollments</a>
+                    <a href="{% url 'academic:enrollment_create' %}" class="btn btn-outline-warning">Enroll Student</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-book me-2"></i> Subjects</h5>
+                </div>
+                <div class="card-body">
+                    <p>Manage academic subjects</p>
+                    <a href="{% url 'academic:subject_list' %}" class="btn btn-secondary">Manage Subjects</a>
+                    <a href="{% url 'academic:subject_create' %}" class="btn btn-outline-secondary">Add Subject</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> Help</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Setup Steps:</strong></p>
+                    <ol class="mb-0">
+                        <li>Create an Academic Session</li>
+                        <li>Add Classes for that session</li>
+                        <li>Create Sections within each class</li>
+                        <li>Enroll students in sections</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

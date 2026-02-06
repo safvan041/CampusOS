@@ -2,7 +2,7 @@
 Admin configuration for plugins app.
 """
 from django.contrib import admin
-from .models import Module, TenantModule
+from .models import Module, TenantModule, ModulePermission
 
 
 @admin.register(Module)
@@ -24,3 +24,14 @@ class TenantModuleAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.select_related('tenant', 'module')
+
+
+@admin.register(ModulePermission)
+class ModulePermissionAdmin(admin.ModelAdmin):
+    list_display = ['module', 'role', 'can_view', 'can_edit', 'can_manage']
+    list_filter = ['module', 'role', 'can_view', 'can_edit', 'can_manage']
+    search_fields = ['module__name', 'role__name']
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('module', 'role')

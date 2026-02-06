@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Enrollments - {{ tenant.school_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-user-graduate me-2"></i> Student Enrollments</h2>
+            <p class="text-muted">Manage student enrollment in sections</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'academic:enrollment_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Enroll Student
+            </a>
+            <a href="{% url 'academic:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if enrollments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Roll Number</th>
+                            <th>Section</th>
+                            <th>Session</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enrollment in enrollments %}
+                        <tr>
+                            <td><strong>{{ enrollment.student_name }}</strong></td>
+                            <td>{{ enrollment.roll_number }}</td>
+                            <td>{{ enrollment.section.full_name }}</td>
+                            <td>{{ enrollment.academic_session.name }}</td>
+                            <td>
+                                {% if enrollment.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'academic:enrollment_edit' enrollment.pk %}"
+                                    class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                No enrollments found. Create sections first, then enroll students!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

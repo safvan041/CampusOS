@@ -9,8 +9,8 @@ from django.db import transaction
 from django.contrib import messages
 from django.http import JsonResponse
 
-from .forms import SchoolRegistrationForm, LoginForm
-from .models import CustomUser
+from .forms import SchoolRegistrationForm, LoginForm, UserCreateForm, UserUpdateForm
+from .models import CustomUser, Role
 from core.tenants.models import Tenant, TenantSettings
 from core.billing.models import Subscription, SubscriptionPlan
 
@@ -85,7 +85,11 @@ def register_view(request):
                     # Create Tenant Settings
                     TenantSettings.objects.create(tenant=tenant)
 
+                    # Create Default Roles
+                    default_roles = Role.create_default_roles(tenant)
+
                     # Create Admin User
+                    principal_role = default_roles.get('Principal')
                     admin_user = CustomUser.objects.create_user(
                         username=form.cleaned_data['admin_email'],
                         email=form.cleaned_data['admin_email'],
@@ -93,9 +97,9 @@ def register_view(request):
                         last_name=form.cleaned_data['admin_last_name'],
                         password=form.cleaned_data['admin_password'],
                         tenant=tenant,
-                        role='super_admin',
+                        role=principal_role,
                         is_staff=True,
-                        is_superuser=False,  # Not a Django superuser
+                        is_superuser=True,
                     )
 
                     # Create Subscription
@@ -106,6 +110,11 @@ def register_view(request):
                         billing_cycle=form.cleaned_data['billing_cycle'],
                         status='trial',
                     )
+
+                    # Set default module permissions for this tenant
+                    from core.plugins.models import Module, ModulePermission
+                    for module in Module.objects.filter(is_active=True):
+                        ModulePermission.ensure_default_permissions(tenant, module)
 
                 # Auto-login the admin (OUTSIDE transaction to avoid session issues)
                 if admin_user:
@@ -140,15 +149,29 @@ def logout_view(request):
     return redirect('auth:landing')
 
 
+def _require_principal(request):
+    """
+    Ensure the current user has the Principal role.
+    """
+    if not request.user.is_authenticated:
+        return redirect('auth:login')
+
+    if not request.user.role or request.user.role.name != 'Principal':
+        return redirect('auth:permission_denied')
+
+    return None
+
+
 @login_required(login_url='auth:login')
 def dashboard(request):
     """
     Dashboard - main application view after login.
-    Shows dynamic module cards based on installed and available modules.
+    Shows dynamic module cards based on installed modules AND user permissions.
     """
-    from core.plugins.models import Module, TenantModule
+    from core.plugins.models import Module, TenantModule, ModulePermission
     
     tenant = request.user.tenant
+    user_role = request.user.role
     
     # Get all active modules
     available_modules = Module.objects.filter(is_active=True)
@@ -159,18 +182,32 @@ def dashboard(request):
         is_installed=True
     ).values_list('module_id', flat=True)
     
-    # Create a list of modules with installation status
+    # Sync module permissions from plugin defaults, then filter by user permissions
     modules_data = []
     for module in available_modules:
-        modules_data.append({
-            'module': module,
-            'is_installed': module.id in installed_module_ids,
-        })
+        ModulePermission.ensure_default_permissions(tenant, module)
+        # Check if user has permission to view this module
+        if user_role:
+            permission = ModulePermission.objects.filter(
+                module=module,
+                role=user_role,
+                can_view=True
+            ).first()
+            
+            if permission:
+                modules_data.append({
+                    'module': module,
+                    'is_installed': module.id in installed_module_ids,
+                })
+    
+    # Determine if user is admin (Principal or superuser)
+    is_admin = request.user.is_superuser or (user_role and user_role.name == 'Principal')
     
     return render(request, 'dashboard/index.html', {
         'tenant': tenant,
         'user': request.user,
         'modules': modules_data,
+        'is_admin': is_admin,
     })
 
 
@@ -211,8 +248,11 @@ def check_email_availability(request):
                 'message': 'Please enter an email'
             })
         
-        # Check if email exists
-        exists = CustomUser.objects.filter(email=email).exists()
+        # Check if email exists for the current tenant (if authenticated)
+        if request.user.is_authenticated and request.user.tenant:
+            exists = CustomUser.objects.filter(email=email, tenant=request.user.tenant).exists()
+        else:
+            exists = False
         
         return JsonResponse({
             'available': not exists,
@@ -223,12 +263,99 @@ def check_email_availability(request):
 
 
 @login_required(login_url='auth:login')
+def permission_denied(request):
+    """
+    Permission denied page for unauthorized access.
+    """
+    return render(request, 'auth/permission_denied.html', {
+        'tenant': getattr(request.user, 'tenant', None),
+        'user': request.user,
+    })
+
+
+@login_required(login_url='auth:login')
+def user_list(request):
+    """
+    List users for the current tenant (Principal only).
+    """
+    redirect_response = _require_principal(request)
+    if redirect_response:
+        return redirect_response
+
+    tenant = request.user.tenant
+    users = CustomUser.objects.filter(tenant=tenant).select_related('role')
+
+    return render(request, 'users/list.html', {
+        'tenant': tenant,
+        'users': users,
+    })
+
+
+@login_required(login_url='auth:login')
+@require_http_methods(["GET", "POST"])
+def user_create(request):
+    """
+    Create a user within the current tenant (Principal only).
+    """
+    redirect_response = _require_principal(request)
+    if redirect_response:
+        return redirect_response
+
+    tenant = request.user.tenant
+    if request.method == 'POST':
+        form = UserCreateForm(request.POST, tenant=tenant)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'User created successfully.')
+            return redirect('auth:user_list')
+    else:
+        form = UserCreateForm(tenant=tenant)
+
+    return render(request, 'users/create.html', {
+        'tenant': tenant,
+        'form': form,
+    })
+
+
+@login_required(login_url='auth:login')
+@require_http_methods(["GET", "POST"])
+def user_edit(request, user_id):
+    """
+    Edit a user within the current tenant (Principal only).
+    """
+    redirect_response = _require_principal(request)
+    if redirect_response:
+        return redirect_response
+
+    tenant = request.user.tenant
+    user = CustomUser.objects.filter(tenant=tenant, id=user_id).select_related('role').first()
+    if not user:
+        messages.error(request, 'User not found.')
+        return redirect('auth:user_list')
+
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, instance=user, tenant=tenant)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'User updated successfully.')
+            return redirect('auth:user_list')
+    else:
+        form = UserUpdateForm(instance=user, tenant=tenant)
+
+    return render(request, 'users/edit.html', {
+        'tenant': tenant,
+        'form': form,
+        'edit_user': user,
+    })
+
+
+@login_required(login_url='auth:login')
 @require_http_methods(["POST"])
 def install_module(request, module_slug):
     """
     Install a module for the current tenant.
     """
-    from core.plugins.models import Module, TenantModule
+    from core.plugins.models import Module, TenantModule, ModulePermission
     
     try:
         # Get the module
@@ -250,6 +377,13 @@ def install_module(request, module_slug):
             messages.success(request, f'{module.name} has been installed and activated!')
         else:
             messages.info(request, f'{module.name} is already installed.')
+
+        # Ensure default roles exist for this tenant
+        if tenant.roles.count() == 0:
+            Role.create_default_roles(tenant)
+
+        # Ensure default permissions exist for this module
+        ModulePermission.ensure_default_permissions(tenant, module)
         
         # Redirect to the module after installation
         return redirect(f'/{module_slug}/')

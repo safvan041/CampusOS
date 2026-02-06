@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load attendance_tags %}
+
+{% block title %}Mark Attendance - {{ class_obj.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>✅ Mark Attendance</h2>
+            <h5 class="text-muted">{{ display_name }}</h5>
+            <p class="text-muted mb-0">Date: <strong>{{ attendance_date|date:"F d, Y" }}</strong></p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'attendance:select_class' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Date Selector -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="date" class="form-label">Select Date</label>
+                    <input type="date" class="form-control" id="date" name="date"
+                        value="{{ attendance_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-calendar me-2"></i> Change Date
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Attendance Form -->
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Student List ({{ students_data|length }} students)</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-success" onclick="markAll('present')">
+                        <i class="fas fa-check-circle me-1"></i> All Present
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="markAll('absent')">
+                        <i class="fas fa-times-circle me-1"></i> All Absent
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if students_data %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%;">Roll No.</th>
+                                <th style="width: 30%;">Student Name</th>
+                                <th style="width: 60%;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students_data %}
+                            <tr>
+                                <td class="align-middle">{{ student.roll_number }}</td>
+                                <td class="align-middle">
+                                    <strong>{{ student.name }}</strong>
+                                </td>
+                                <td>
+                                    <div class="btn-group w-100" role="group">
+                                        <input type="radio" class="btn-check" name="status_{{ student.id }}"
+                                            id="present_{{ student.id }}" value="present" {% if existing_attendance|get_item:student.id|default:"" == "present" or existing_attendance|get_item:student.id == "" %}checked{% endif %}>
+                                        <label class="btn btn-outline-success" for="present_{{ student.id }}">
+                                            <i class="fas fa-check me-1"></i> Present
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="status_{{ student.id }}"
+                                            id="absent_{{ student.id }}" value="absent" {% if existing_attendance|get_item:student.id == "absent" %}checked{% endif %}>
+                                        <label class="btn btn-outline-danger" for="absent_{{ student.id }}">
+                                            <i class="fas fa-times me-1"></i> Absent
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="status_{{ student.id }}"
+                                            id="late_{{ student.id }}" value="late" {% if existing_attendance|get_item:student.id == "late" %}checked{% endif %}>
+                                        <label class="btn btn-outline-warning" for="late_{{ student.id }}">
+                                            <i class="fas fa-clock me-1"></i> Late
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="status_{{ student.id }}"
+                                            id="excused_{{ student.id }}" value="excused" {% if existing_attendance|get_item:student.id == "excused" %}checked{% endif %}>
+                                        <label class="btn btn-outline-info" for="excused_{{ student.id }}">
+                                            <i class="fas fa-file-medical me-1"></i> Excused
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save me-2"></i> Save Attendance
+                    </button>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No students found in this class.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function markAll(status) {
+        const radios = document.querySelectorAll(`input[value="${status}"]`);
+        radios.forEach(radio => {
+            radio.checked = true;
+        });
+    }
+</script>
+
+<style>
+    .btn-check:checked+.btn-outline-success {
+        background-color: #10b981;
+        border-color: #10b981;
+    }
+
+    .btn-check:checked+.btn-outline-danger {
+        background-color: #ef4444;
+        border-color: #ef4444;
+    }
+
+    .btn-check:checked+.btn-outline-warning {
+        background-color: #f59e0b;
+        border-color: #f59e0b;
+    }
+
+    .btn-check:checked+.btn-outline-info {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+</style>
+{% endblock %}

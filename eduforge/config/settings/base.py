@@ -5,6 +5,22 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Workaround for Django 4.2.x + Python 3.14 context copy bug in admin templates.
+from django.template.context import BaseContext
+
+
+def _safe_context_copy(self):
+    # Create instance without calling __init__ to avoid RequestContext parameter issues
+    duplicate = self.__class__.__new__(self.__class__)
+    # Copy all instance attributes (request, template, etc.)
+    duplicate.__dict__.update(self.__dict__)
+    # Make a shallow copy of dicts list to avoid mutations
+    duplicate.dicts = self.dicts[:]
+    return duplicate
+
+
+BaseContext.__copy__ = _safe_context_copy
+
 # Load environment variables from .env file
 load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / '.env')
 
@@ -37,6 +53,7 @@ INSTALLED_APPS = [
     'core.billing',
     'core.permissions',
     'api',
+    'modules.academic',
     'modules.attendance',
     'modules.payroll',
     'modules.timetable',

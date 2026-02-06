@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Class Attendance Report{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>📈 Class Attendance Report</h2>
+            {% if class_obj %}
+            <h5 class="text-muted">{{ class_obj.name }}{% if class_obj.section %} - {{ class_obj.section }}{% endif %}
+            </h5>
+            {% endif %}
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'attendance:index' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Class Selection -->
+    {% if not class_obj %}
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Select a Class</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                {% for class in classes %}
+                <div class="col-md-4">
+                    <a href="{% url 'attendance:class_report_detail' class.id %}" class="text-decoration-none">
+                        <div class="card border-primary h-100 hover-shadow">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ class.name }}{% if class.section %} - {{ class.section }}{% endif %}</h6>
+                                <p class="card-text text-muted mb-0">
+                                    <i class="fas fa-users me-1"></i> {{ class.get_student_count }} students
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No classes found.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Date Range Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date"
+                        value="{{ start_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date"
+                        value="{{ end_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-2"></i> Filter
+                    </button>
+                    <a href="{% url 'attendance:export_csv' class_obj.id %}?start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}"
+                        class="btn btn-success">
+                        <i class="fas fa-download me-2"></i> Export CSV
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Table -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i> Attendance Report</h5>
+        </div>
+        <div class="card-body">
+            {% if students_data %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Roll No.</th>
+                            <th>Student Name</th>
+                            <th>Total Days</th>
+                            <th>Present</th>
+                            <th>Absent</th>
+                            <th>Late</th>
+                            <th>Attendance %</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in students_data %}
+                        <tr>
+                            <td>{{ data.student.roll_number }}</td>
+                            <td><strong>{{ data.student.user.get_full_name }}</strong></td>
+                            <td>{{ data.total_days }}</td>
+                            <td><span class="badge bg-success">{{ data.present_days }}</span></td>
+                            <td><span class="badge bg-danger">{{ data.absent_days }}</span></td>
+                            <td><span class="badge bg-warning">{{ data.late_days }}</span></td>
+                            <td>
+                                {% if data.percentage >= 75 %}
+                                <span class="badge bg-success">{{ data.percentage }}%</span>
+                                {% elif data.percentage >= 50 %}
+                                <span class="badge bg-warning">{{ data.percentage }}%</span>
+                                {% else %}
+                                <span class="badge bg-danger">{{ data.percentage }}%</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'attendance:student_summary' data.student.id %}"
+                                    class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Summary Statistics -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="alert alert-info">
+                        <strong>Summary:</strong>
+                        Total Students: {{ students_data|length }} |
+                        Date Range: {{ start_date|date:"M d, Y" }} to {{ end_date|date:"M d, Y" }}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                No attendance data found for the selected date range.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .hover-shadow {
+        transition: all 0.3s ease;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}

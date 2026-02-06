@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if class %}Edit{% else %}Create{% endif %} Class - {{ tenant.school_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-school me-2"></i> {% if class %}Edit{% else %}Create{% endif %} Class</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Class Name *</label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                value="{% if class %}{{ class.name }}{% endif %}" placeholder="e.g., Grade 5, Class 10"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="academic_session" class="form-label">Academic Session *</label>
+                            <select class="form-select" id="academic_session" name="academic_session" required>
+                                <option value="">Select a session...</option>
+                                {% for session in sessions %}
+                                <option value="{{ session.pk }}" {% if class and class.academic_session == session %}selected{% endif %}>
+                                    {{ session.name }} {% if session.is_active %}(Active){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                placeholder="Optional description">{% if class %}{{ class.description }}{% endif %}</textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> Save Class
+                            </button>
+                            <a href="{% url 'academic:class_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5><i class="fas fa-info-circle me-2"></i> Help</h5>
+                    <p><strong>Classes</strong> represent grade levels.</p>
+                    <ul class="mb-0">
+                        <li>Examples: Grade 1, Grade 2, Class 10</li>
+                        <li>Each class belongs to an academic session</li>
+                        <li>Create sections within each class</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

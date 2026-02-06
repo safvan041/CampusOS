@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Permission Denied - CampusOS{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-ban fa-3x text-danger mb-3"></i>
+                    <h3 class="card-title">Permission Denied</h3>
+                    <p class="text-muted">
+                        You do not have permission to access this page or module.
+                    </p>
+                    <a href="{% url 'auth:dashboard' %}" class="btn btn-primary">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

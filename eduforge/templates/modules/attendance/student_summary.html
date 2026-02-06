@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Attendance Summary{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>📊 Attendance Summary</h2>
+            <h5 class="text-muted">{{ student.user.get_full_name }}</h5>
+            <p class="text-muted mb-0">
+                Roll Number: <strong>{{ student.roll_number }}</strong> |
+                Class: <strong>{{ student.class_assigned }}</strong>
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'attendance:index' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date"
+                        value="{{ start_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date"
+                        value="{{ end_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-2"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-2x text-primary mb-2"></i>
+                    <h3 class="mb-0">{{ total_days }}</h3>
+                    <p class="text-muted mb-0">Total Days</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h3 class="mb-0">{{ present_days }}</h3>
+                    <p class="text-muted mb-0">Present</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+                    <h3 class="mb-0">{{ absent_days }}</h3>
+                    <p class="text-muted mb-0">Absent</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-percentage fa-2x text-warning mb-2"></i>
+                    <h3 class="mb-0">{{ attendance_percentage }}%</h3>
+                    <p class="text-muted mb-0">Attendance Rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Records -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i> Attendance Records</h5>
+        </div>
+        <div class="card-body">
+            {% if attendance_records %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Marked By</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in attendance_records %}
+                        <tr>
+                            <td>{{ record.date|date:"F d, Y" }}</td>
+                            <td>
+                                {% if record.status == 'present' %}
+                                <span class="badge bg-success"><i class="fas fa-check me-1"></i> Present</span>
+                                {% elif record.status == 'absent' %}
+                                <span class="badge bg-danger"><i class="fas fa-times me-1"></i> Absent</span>
+                                {% elif record.status == 'late' %}
+                                <span class="badge bg-warning"><i class="fas fa-clock me-1"></i> Late</span>
+                                {% elif record.status == 'excused' %}
+                                <span class="badge bg-info"><i class="fas fa-file-medical me-1"></i> Excused</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ record.marked_by.get_full_name|default:"N/A" }}</td>
+                            <td>{{ record.notes|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                No attendance records found for the selected date range.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

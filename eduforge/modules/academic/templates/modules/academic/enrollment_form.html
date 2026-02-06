@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if enrollment %}Edit{% else %}Create{% endif %} Enrollment - {{ tenant.school_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-user-graduate me-2"></i> {% if enrollment %}Edit{% else %}Create{% endif %} Enrollment
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="student" class="form-label">Student *</label>
+                            <select class="form-select" id="student" name="student" required>
+                                <option value="">Select a student...</option>
+                                {% for student in students %}
+                                <option value="{{ student.pk }}" {% if enrollment and enrollment.student == student %}selected{% endif %}>
+                                    {{ student.get_full_name }} ({{ student.username }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="section" class="form-label">Section *</label>
+                            <select class="form-select" id="section" name="section" required>
+                                <option value="">Select a section...</option>
+                                {% for section in sections %}
+                                <option value="{{ section.pk }}" {% if enrollment and enrollment.section == section %}selected{% endif %}>
+                                    {{ section.full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="academic_session" class="form-label">Academic Session *</label>
+                            <select class="form-select" id="academic_session" name="academic_session" required>
+                                <option value="">Select a session...</option>
+                                {% for session in sessions %}
+                                <option value="{{ session.pk }}" {% if enrollment and enrollment.academic_session == session %}selected{% elif session.is_active %}selected{% endif %}>
+                                    {{ session.name }} {% if session.is_active %}(Active){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="roll_number" class="form-label">Roll Number *</label>
+                            <input type="text" class="form-control" id="roll_number" name="roll_number"
+                                value="{% if enrollment %}{{ enrollment.roll_number }}{% endif %}"
+                                placeholder="e.g., 001, A-15" required>
+                        </div>
+
+                        {% if enrollment %}
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if enrollment.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">
+                                Active Enrollment
+                            </label>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> Save Enrollment
+                            </button>
+                            <a href="{% url 'academic:enrollment_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5><i class="fas fa-info-circle me-2"></i> Help</h5>
+                    <p><strong>Enrollment</strong> assigns students to sections.</p>
+                    <ul class="mb-0">
+                        <li>Each student can only be enrolled once per session</li>
+                        <li>Roll numbers should be unique within a section</li>
+                        <li>Enrollment is used for attendance and timetables</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

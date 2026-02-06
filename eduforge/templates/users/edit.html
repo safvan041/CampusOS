@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit User - CampusOS{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Edit User</h2>
+            <p class="text-muted">Editing: <strong>{{ edit_user.get_full_name|default:edit_user.username }}</strong></p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Phone Number</label>
+                        {{ form.phone_number }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Role</label>
+                        {{ form.role }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Active</label>
+                        {{ form.is_active }}
+                    </div>
+                </div>
+
+                {% if form.errors %}
+                <div class="alert alert-danger mt-3">
+                    Please fix the errors below.
+                </div>
+                {% endif %}
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a href="{% url 'auth:user_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

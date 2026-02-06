@@ -24,7 +24,8 @@
 
     <!-- Module Features -->
     <div class="row g-4">
-        <!-- Create Timetable -->
+        {% if is_principal %}
+        <!-- Create Timetable (Principal only) -->
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body text-center">
@@ -35,20 +36,24 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
-        <!-- View Schedule -->
+        {% if can_view_schedule %}
+        <!-- View Schedule (Principal, Teacher, Student) -->
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body text-center">
                     <i class="fas fa-calendar-alt fa-3x text-primary mb-3"></i>
                     <h5 class="card-title">View Schedules</h5>
-                    <p class="card-text">Browse and view class schedules and timetables.</p>
+                    <p class="card-text">Browse and view your allocated schedules and timetables.</p>
                     <a href="{% url 'timetable:schedule' %}" class="btn btn-primary">View Schedules</a>
                 </div>
             </div>
         </div>
+        {% endif %}
 
-        <!-- Manage Teachers -->
+        {% if is_principal %}
+        <!-- Manage Teachers (Principal only) -->
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body text-center">
@@ -59,6 +64,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Current Timetables -->

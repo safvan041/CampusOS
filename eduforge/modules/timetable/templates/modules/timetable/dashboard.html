@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Timetable Dashboard - {{ tenant.school_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-calendar-alt me-2"></i> Timetable Dashboard</h2>
+            <p class="text-muted">Manage and view class schedules</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <!-- Future: Link to global timetable management or settings -->
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Time Slots</h6>
+                            <h2 class="mt-2 mb-0">{{ total_slots }}</h2>
+                        </div>
+                        <i class="fas fa-clock fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Scheduled Sections</h6>
+                            <h2 class="mt-2 mb-0">{{ sections_with_timetable }}</h2>
+                        </div>
+                        <i class="fas fa-calendar-check fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions & Section List -->
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Academic Sections</h4>
+                {% if user.role.name == 'Principal' or user.role.name == 'Staff' %}
+                <div>
+                    <a href="{% url 'academic:subject_list' %}" class="btn btn-secondary me-2">
+                        <i class="fas fa-book me-2"></i> Manage Subjects
+                    </a>
+                    <a href="{% url 'timetable:manage_time_slots' %}" class="btn btn-primary">
+                        <i class="fas fa-clock me-2"></i> Manage Time Slots
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if sections %}
+            <div class="row g-4">
+                {% for section in sections %}
+                <div class="col-md-4 col-lg-3">
+                    <div class="card h-100 hover-shadow border-light shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">{{ section.full_name }}</h5>
+                            <p class="card-text text-muted small mb-3">
+                                <i class="fas fa-user-tie me-1"></i> {{ section.class_teacher.get_full_name|default:"Not
+                                Assigned" }}
+                            </p>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'timetable:section_timetable' section.id %}"
+                                    class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i> View
+                                </a>
+                                {% if user.role.name == 'Principal' or user.role.name == 'Staff' %}
+                                <a href="{% url 'timetable:manage_timetable' section.id %}"
+                                    class="btn btn-primary btn-sm">
+                                    <i class="fas fa-edit me-1"></i> Manage
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> No academic sections found.
+                Please create sections in the <a href="{% url 'academic:dashboard' %}">Academic Module</a> first.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
