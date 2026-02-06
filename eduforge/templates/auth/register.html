@@ -1,0 +1,669 @@
+{% extends 'base.html' %}
+
+{% block title %}Register School - CampusOS{% endblock %}
+
+{% block content %}
+<div class="page-container" style="padding-top: 2rem; padding-bottom: 2rem;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <h2 class="mb-2">
+                        <i class="fas fa-graduation-cap" style="color: #3b82f6;"></i> School Registration
+                    </h2>
+                    <p class="text-muted">Complete the form below to register your institution</p>
+                </div>
+
+                <!-- Progress Indicator -->
+                <div class="mb-5">
+                    <div class="row text-center">
+                        <div class="col">
+                            <div class="step-indicator active">1</div>
+                            <small class="progress-step active">Basic Info</small>
+                        </div>
+                        <div class="col">
+                            <div class="step-indicator">2</div>
+                            <small class="progress-step">Contact</small>
+                        </div>
+                        <div class="col">
+                            <div class="step-indicator">3</div>
+                            <small class="progress-step">Profile</small>
+                        </div>
+                        <div class="col">
+                            <div class="step-indicator">4</div>
+                            <small class="progress-step">Subscription</small>
+                        </div>
+                        <div class="col">
+                            <div class="step-indicator">5</div>
+                            <small class="progress-step">Admin Account</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registration Form -->
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <form method="post" class="needs-validation" novalidate id="registrationForm">
+                            {% csrf_token %}
+
+                            <!-- STEP 1: Basic School Identity -->
+                            <div class="form-section" data-step="1">
+                                <h5>
+                                    <i class="fas fa-school me-2"></i> Basic School Identity
+                                </h5>
+
+                                <!-- School Name -->
+                                <div class="mb-3">
+                                    <label for="id_school_name" class="form-label">School Name *</label>
+                                    {{ form.school_name }}
+                                    {% if form.school_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.school_name.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Subdomain -->
+                                <div class="mb-3">
+                                    <label for="id_subdomain" class="form-label">Subdomain *</label>
+                                    <div class="input-group">
+                                        {{ form.subdomain }}
+                                        <span class="input-group-text">.campusos.test</span>
+                                    </div>
+                                    <small class="form-text text-muted d-block mt-2">
+                                        Lowercase letters and numbers only, 3-20 characters
+                                    </small>
+                                    <div id="subdomainMessage" class="mt-2 small"></div>
+                                    {% if form.subdomain.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.subdomain.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <strong>Portal URL:</strong> Your school will be accessible at: 
+                                    <code id="portalUrl">https://yourschool.campusos.test</code>
+                                </div>
+                            </div>
+
+                            <!-- STEP 2: Contact Information -->
+                            <div class="form-section" data-step="2" style="display: none;">
+                                <h5>
+                                    <i class="fas fa-address-card me-2"></i> Contact Information
+                                </h5>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_official_email" class="form-label">Official Email *</label>
+                                        {{ form.official_email }}
+                                        <div id="emailMessage" class="mt-2 small"></div>
+                                        {% if form.official_email.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.official_email.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_alternate_email" class="form-label">Alternate Email</label>
+                                        {{ form.alternate_email }}
+                                        {% if form.alternate_email.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.alternate_email.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_phone_number" class="form-label">Phone Number *</label>
+                                        {{ form.phone_number }}
+                                        {% if form.phone_number.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.phone_number.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_alternate_phone" class="form-label">Alternate Phone</label>
+                                        {{ form.alternate_phone }}
+                                        {% if form.alternate_phone.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.alternate_phone.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- STEP 3: Address -->
+                            <div class="form-section" data-step="2" style="display: none;">
+                                <h5>
+                                    <i class="fas fa-map-marker-alt me-2"></i> School Address
+                                </h5>
+
+                                <div class="mb-3">
+                                    <label for="id_street_address" class="form-label">Street Address</label>
+                                    {{ form.street_address }}
+                                    {% if form.street_address.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.street_address.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_city" class="form-label">City *</label>
+                                        {{ form.city }}
+                                        {% if form.city.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.city.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_state" class="form-label">State *</label>
+                                        {{ form.state }}
+                                        {% if form.state.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.state.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="id_postal_code" class="form-label">Postal Code *</label>
+                                    {{ form.postal_code }}
+                                    {% if form.postal_code.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.postal_code.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- STEP 4: School Profile -->
+                            <div class="form-section" data-step="3" style="display: none;">
+                                <h5>
+                                    <i class="fas fa-info-circle me-2"></i> School Profile
+                                </h5>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_school_type" class="form-label">School Type *</label>
+                                        {{ form.school_type }}
+                                        {% if form.school_type.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.school_type.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_student_count" class="form-label">Estimated Student Count *</label>
+                                        {{ form.student_count }}
+                                        {% if form.student_count.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.student_count.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="id_language_preference" class="form-label">Language Preference *</label>
+                                    {{ form.language_preference }}
+                                    {% if form.language_preference.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.language_preference.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- STEP 5: Subscription Setup -->
+                            <div class="form-section" data-step="4" style="display: none;">
+                                <h5>
+                                    <i class="fas fa-credit-card me-2"></i> Subscription Setup
+                                </h5>
+
+                                <!-- Plans -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold mb-3">Select Plan *</label>
+                                    <div id="planSelection" class="row g-3">
+                                        {% for plan in form.subscription_plan %}
+                                            <div class="col-md-6">
+                                                <div class="plan-card" data-plan-id="{{ plan.data.value }}">
+                                                    <input type="radio" name="subscription_plan" value="{{ plan.data.value }}" id="plan_{{ plan.data.value }}" class="form-check-input" {% if plan.data.selected %}checked{% endif %}>
+                                                    <label for="plan_{{ plan.data.value }}" class="mb-0 w-100" style="border: none; padding: 0; background: transparent;">
+                                                        <h6 class="mb-2">{{ plan.data.label }}</h6>
+                                                        <div class="plan-price">${{ plan.data.label|lower|cut:" "}}99/mo</div>
+                                                        <div class="plan-description">Perfect for {{ plan.data.label|lower }} institutions</div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% if form.subscription_plan.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.subscription_plan.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Billing Cycle -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold mb-3">Billing Cycle *</label>
+                                    <div class="billing-cycle-options">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="billing_cycle" value="monthly" id="monthly" {% if form.billing_cycle.value == "monthly" %}checked{% endif %}>
+                                            <label class="form-check-label" for="monthly">
+                                                <strong>Monthly</strong>
+                                                <small class="d-block text-muted">Billed monthly</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="billing_cycle" value="yearly" id="yearly" {% if form.billing_cycle.value == "yearly" %}checked{% endif %}>
+                                            <label class="form-check-label" for="yearly">
+                                                <strong>Yearly</strong>
+                                                <small class="d-block text-muted">Save 20% annually</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% if form.billing_cycle.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.billing_cycle.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="alert alert-success">
+                                    <i class="fas fa-gift me-2"></i>
+                                    <strong>Free 14-Day Trial:</strong> Start your subscription with 14 days free trial. No credit card required.
+                                </div>
+                            </div>
+
+                            <!-- STEP 6: Admin Account -->
+                            <div class="form-section" data-step="5" style="display: none;">
+                                <h5>
+                                    <i class="fas fa-user-tie me-2"></i> Admin Account Creation
+                                </h5>
+                                <p class="text-muted small mb-4">Create your first admin account. This user will be the super admin of your institution.</p>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_admin_first_name" class="form-label">First Name *</label>
+                                        {{ form.admin_first_name }}
+                                        {% if form.admin_first_name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.admin_first_name.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_admin_last_name" class="form-label">Last Name *</label>
+                                        {{ form.admin_last_name }}
+                                        {% if form.admin_last_name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.admin_last_name.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="id_admin_email" class="form-label">Admin Email *</label>
+                                    {{ form.admin_email }}
+                                    <div id="adminEmailMessage" class="mt-2 small"></div>
+                                    {% if form.admin_email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.admin_email.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="id_admin_password" class="form-label">Password *</label>
+                                    {{ form.admin_password }}
+                                    <div class="password-strength weak" id="passwordStrength"></div>
+                                    <ul class="password-requirements" id="passwordChecklist">
+                                        <li class="unmet" data-requirement="length">
+                                            <i class="fas fa-check me-2"></i> At least 8 characters
+                                        </li>
+                                        <li class="unmet" data-requirement="uppercase">
+                                            <i class="fas fa-check me-2"></i> At least one uppercase letter
+                                        </li>
+                                        <li class="unmet" data-requirement="lowercase">
+                                            <i class="fas fa-check me-2"></i> At least one lowercase letter
+                                        </li>
+                                        <li class="unmet" data-requirement="number">
+                                            <i class="fas fa-check me-2"></i> At least one number
+                                        </li>
+                                        <li class="unmet" data-requirement="special">
+                                            <i class="fas fa-check me-2"></i> At least one special character
+                                        </li>
+                                    </ul>
+                                    {% if form.admin_password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.admin_password.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="id_confirm_password" class="form-label">Confirm Password *</label>
+                                    {{ form.confirm_password }}
+                                    <div id="passwordMatch" class="mt-2 small"></div>
+                                    {% if form.confirm_password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.confirm_password.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Terms & Conditions -->
+                            <div class="form-section" data-step="5" style="display: none;">
+                                <div class="form-check mb-3">
+                                    {{ form.agree_terms }}
+                                    <label class="form-check-label" for="id_agree_terms">
+                                        I agree to the <a href="#" class="text-primary">Terms of Service</a> and 
+                                        <a href="#" class="text-primary">Privacy Policy</a> *
+                                    </label>
+                                    {% if form.agree_terms.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.agree_terms.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Form Non-Field Errors -->
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    {% for error in form.non_field_errors %}
+                                        <i class="fas fa-exclamation-circle me-2"></i> {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <!-- Navigation Buttons -->
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">
+                                    <i class="fas fa-arrow-left me-2"></i> Previous
+                                </button>
+                                <button type="button" class="btn btn-primary ms-auto" id="nextBtn">
+                                    Next <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                                <button type="submit" class="btn btn-success ms-auto" id="submitBtn" style="display: none;">
+                                    <i class="fas fa-check-circle me-2"></i> Complete Registration
+                                </button>
+                            </div>
+
+                            <!-- Login Link -->
+                            <div class="text-center mt-3">
+                                <small class="text-muted">
+                                    Already have an account? 
+                                    <a href="{% url 'auth:login' %}" class="text-primary text-decoration-none fw-semibold">
+                                        Login here
+                                    </a>
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Multi-step form navigation
+        let currentStep = 1;
+        const totalSteps = 5;
+
+        function showStep(step) {
+            // Hide all sections
+            $('.form-section').hide();
+            
+            // Show sections for current step
+            $('.form-section[data-step="' + step + '"]').show();
+            
+            // Update progress indicator
+            $('.step-indicator').removeClass('active');
+            $('.progress-step').removeClass('active');
+            
+            for (let i = 1; i <= step; i++) {
+                $('.step-indicator:nth-child(' + (i * 2 - 1) + ')').addClass('active');
+                $('.progress-step:nth-child(' + (i * 2) + ')').addClass('active');
+            }
+            
+            // Update buttons
+            if (step === 1) {
+                $('#prevBtn').hide();
+            } else {
+                $('#prevBtn').show();
+            }
+            
+            if (step === totalSteps) {
+                $('#nextBtn').hide();
+                $('#submitBtn').show();
+            } else {
+                $('#nextBtn').show();
+                $('#submitBtn').hide();
+            }
+            
+            // Scroll to top of form
+            $('html, body').animate({
+                scrollTop: $('.card').offset().top - 100
+            }, 300);
+        }
+
+        // Next button
+        $('#nextBtn').click(function() {
+            if (validateCurrentStep()) {
+                currentStep++;
+                if (currentStep > totalSteps) currentStep = totalSteps;
+                showStep(currentStep);
+            }
+        });
+
+        // Previous button
+        $('#prevBtn').click(function() {
+            currentStep--;
+            if (currentStep < 1) currentStep = 1;
+            showStep(currentStep);
+        });
+
+        // Validate current step
+        function validateCurrentStep() {
+            let valid = true;
+            const currentSections = $('.form-section[data-step="' + currentStep + '"]');
+            
+            currentSections.each(function() {
+                $(this).find('input[required], select[required], textarea[required]').each(function() {
+                    if (!this.checkValidity()) {
+                        $(this).addClass('is-invalid');
+                        valid = false;
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
+            });
+            
+            return valid;
+        }
+
+        // Click on progress indicator to navigate
+        $('.step-indicator').click(function() {
+            const stepIndex = $(this).index() / 2 + 1;
+            if (stepIndex <= currentStep || validateCurrentStep()) {
+                currentStep = stepIndex;
+                showStep(currentStep);
+            }
+        });
+
+        // Initialize
+        showStep(1);
+
+        // Update portal URL when subdomain changes
+        $('#id_subdomain').on('input', function() {
+            const subdomain = $(this).val().toLowerCase();
+            $('#portalUrl').text('https://' + (subdomain || 'yourschool') + '.campusos.test');
+
+            // Check availability via AJAX
+            if (subdomain.length >= 3) {
+                $.ajax({
+                    url: '{% url "auth:check_subdomain" %}',
+                    data: {subdomain: subdomain},
+                    success: function(data) {
+                        if (data.available) {
+                            $('#subdomainMessage').html(
+                                '<i class="fas fa-check-circle text-success me-2"></i>' + data.message
+                            ).removeClass('text-danger').addClass('text-success');
+                        } else {
+                            $('#subdomainMessage').html(
+                                '<i class="fas fa-times-circle text-danger me-2"></i>' + data.message
+                            ).removeClass('text-success').addClass('text-danger');
+                        }
+                    }
+                });
+            }
+        });
+
+        // Check email availability
+        $('#id_official_email, #id_admin_email').on('blur', function() {
+            const email = $(this).val();
+            const id = $(this).attr('id');
+            const messageSelector = id === 'id_official_email' ? '#emailMessage' : '#adminEmailMessage';
+
+            if (email) {
+                $.ajax({
+                    url: '{% url "auth:check_email" %}',
+                    data: {email: email},
+                    success: function(data) {
+                        if (data.available) {
+                            $(messageSelector).html(
+                                '<i class="fas fa-check-circle text-success me-2"></i>' + data.message
+                            ).removeClass('text-danger').addClass('text-success');
+                        } else {
+                            $(messageSelector).html(
+                                '<i class="fas fa-times-circle text-danger me-2"></i>' + data.message
+                            ).removeClass('text-success').addClass('text-danger');
+                        }
+                    }
+                });
+            }
+        });
+
+        // Password strength validation
+        $('#id_admin_password').on('input', function() {
+            const password = $(this).val();
+            const checks = {
+                'length': password.length >= 8,
+                'uppercase': /[A-Z]/.test(password),
+                'lowercase': /[a-z]/.test(password),
+                'number': /[0-9]/.test(password),
+                'special': /[!@#$%^&*(),.?":{}|<>]/.test(password)
+            };
+
+            // Update checklist
+            $.each(checks, function(requirement, met) {
+                const item = $('[data-requirement="' + requirement + '"]');
+                if (met) {
+                    item.removeClass('unmet').addClass('met');
+                } else {
+                    item.removeClass('met').addClass('unmet');
+                }
+            });
+
+            // Update strength indicator
+            const metCount = Object.values(checks).filter(v => v).length;
+            const strength = $('#passwordStrength');
+            
+            strength.removeClass('weak fair strong');
+            if (metCount <= 2) {
+                strength.addClass('weak');
+            } else if (metCount <= 4) {
+                strength.addClass('fair');
+            } else {
+                strength.addClass('strong');
+            }
+
+            // Check password match
+            checkPasswordMatch();
+        });
+
+        // Password confirmation
+        $('#id_confirm_password').on('input', function() {
+            checkPasswordMatch();
+        });
+
+        function checkPasswordMatch() {
+            const password = $('#id_admin_password').val();
+            const confirm = $('#id_confirm_password').val();
+            const message = $('#passwordMatch');
+
+            if (confirm) {
+                if (password === confirm) {
+                    message.html(
+                        '<i class="fas fa-check-circle text-success me-2"></i>Passwords match'
+                    ).removeClass('text-danger').addClass('text-success');
+                } else {
+                    message.html(
+                        '<i class="fas fa-times-circle text-danger me-2"></i>Passwords do not match'
+                    ).removeClass('text-success').addClass('text-danger');
+                }
+            } else {
+                message.html('');
+            }
+        }
+
+        // Plan card selection
+        $('#planSelection .plan-card').on('change', 'input[type="radio"]', function() {
+            $('#planSelection .plan-card').removeClass('selected');
+            $(this).closest('.plan-card').addClass('selected');
+        });
+
+        $('#planSelection .plan-card input[type="radio"]').on('click', function() {
+            $('#planSelection .plan-card').removeClass('selected');
+            $(this).closest('.plan-card').addClass('selected');
+        });
+
+        // Initial state
+        $('#planSelection input[type="radio"]:checked').closest('.plan-card').addClass('selected');
+
+        // Billing cycle styling
+        $('.billing-cycle-options input[type="radio"]').on('change', function() {
+            $('.billing-cycle-options .form-check label').removeClass('border border-primary');
+            $(this).closest('.form-check').find('label').addClass('border border-primary');
+        });
+
+        // Initial billing cycle state
+        $('.billing-cycle-options input[type="radio"]:checked').closest('.form-check').find('label').addClass('border border-primary');
+
+        // Form validation
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var forms = document.querySelectorAll('.needs-validation');
+                Array.prototype.slice.call(forms).forEach(function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    });
+</script>
+{% endblock %}

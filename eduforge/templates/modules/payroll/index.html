@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Payroll - CampusOS{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>💰 Payroll Module</h2>
+            <p class="text-muted">School: <strong>{{ tenant.school_name }}</strong></p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'auth:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Welcome Message -->
+    <div class="alert alert-success">
+        <i class="fas fa-info-circle me-2"></i>
+        Welcome to the Payroll module! Manage employee salaries and payments.
+    </div>
+
+    <!-- Module Features -->
+    <div class="row g-4">
+        <!-- Manage Salaries -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-money-bill-wave fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Manage Salaries</h5>
+                    <p class="card-text">Set up and manage employee salary structures.</p>
+                    <a href="{% url 'payroll:salaries' %}" class="btn btn-success">Manage Salaries</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Payslips -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-invoice-dollar fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Generate Payslips</h5>
+                    <p class="card-text">Create and download employee payslips.</p>
+                    <a href="{% url 'payroll:payslips' %}" class="btn btn-primary">Generate Payslips</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-history fa-3x text-secondary mb-3"></i>
+                    <h5 class="card-title">Payment History</h5>
+                    <p class="card-text">View complete payment history and records.</p>
+                    <a href="#" class="btn btn-secondary">View History</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i> Monthly Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">No payroll data available yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
